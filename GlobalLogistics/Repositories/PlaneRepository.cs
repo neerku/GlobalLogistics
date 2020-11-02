@@ -11,6 +11,7 @@ namespace GlobalLogistics.Repositories
     public class PlaneRepository
     {
         private readonly IMongoCollection<Models.Plane> planeCollection;
+        private readonly IMongoCollection<Models.City> cityCollection;
         private readonly IMongoClient mongoClient;
 
         public PlaneRepository(IMongoClient client)
@@ -18,6 +19,8 @@ namespace GlobalLogistics.Repositories
             mongoClient = client;
             planeCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
                 .GetCollection<Models.Plane>(APIConstant.PlanesCollection);
+            cityCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
+                    .GetCollection<Models.City>(APIConstant.CitiesCollection);
         }
 
         public async Task<IReadOnlyList<Models.Plane>> GetPlanesAsync()
@@ -35,6 +38,98 @@ namespace GlobalLogistics.Repositories
                 .Find(Builders<Models.Plane>.Filter.Eq(x => x.CallSign, planeId))
                 .FirstOrDefaultAsync();
             return plane;
+        }
+               
+        public async Task<bool> UpdateLocationHeadingAndCityAsync(string id, List<string> location, int heading,string cityId = "")
+        {
+            var filter = Builders<Models.Plane>.Filter.Eq(s => s.CallSign, id);
+            UpdateDefinition<Models.Plane> update;
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(cityId))
+                {
+                        update = Builders<Models.Plane>.Update
+                                        .Set(s => s.Heading, heading)
+                                        .Set(s => s.Landed, cityId)
+                                        .Set(s => s.CurrentLocation, location);
+                }
+                else
+                {
+
+                    update = Builders<Models.Plane>.Update
+                    .Set(s => s.Heading, heading)
+                    .Set(s => s.CurrentLocation, location);
+
+                }
+
+            
+             UpdateResult actionResult = await planeCollection.UpdateOneAsync(filter, update);
+
+            return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<bool> ReplaceRouteAsync(string id, string cityId)
+        {
+            var filter = Builders<Models.Plane>.Filter.Eq(s => s.CallSign, id);
+            UpdateDefinition<Models.Plane> update;
+
+            try
+            {
+                    update = Builders<Models.Plane>.Update
+                                    .Set(s => s.Route, new List<string> { cityId });
+               
+                UpdateResult actionResult = await planeCollection.UpdateOneAsync(filter, update);
+
+                return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<bool> AddCityToRouteAsync(string id, string cityId)
+        {
+            var filter = Builders<Models.Plane>.Filter.Eq(s => s.CallSign, id);
+            UpdateDefinition<Models.Plane> update;
+
+            try
+            {
+                update = Builders<Models.Plane>.Update.AddToSet(s => s.Route, cityId);
+
+                UpdateResult actionResult = await planeCollection.UpdateOneAsync(filter, update);
+
+                return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<bool> DeleteReachedDestinationAsync(string id)
+        {
+            var filter = Builders<Models.Plane>.Filter.Eq(s => s.CallSign, id);
+            UpdateDefinition<Models.Plane> update;
+
+            try
+            {
+                update = Builders<Models.Plane>.Update.PopFirst(s => s.Route);
+
+                UpdateResult actionResult = await planeCollection.UpdateOneAsync(filter, update);
+
+                return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }
