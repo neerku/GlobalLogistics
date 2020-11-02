@@ -118,11 +118,10 @@ namespace GlobalLogistics.Controllers
             var plane = await _planeRepository.GetPlaneAsync(id);
             if (plane == null)
                 return NotFound("Plane Not found");
-            if(plane.Route.Count>0)
+            if(plane.Route.Count>0 && string.Compare(plane.Route.FirstOrDefault(), plane.Landed)==0)
               await _planeRepository.DeleteReachedDestinationAsync(id);
            return Ok(plane);
         }
-
 
         private Boolean ValidateLocation(List<string> location) 
         {

@@ -22,8 +22,8 @@ namespace GlobalLogistics
 
         #region Cargo Status
 
-        public const string LogisticsCollection = "";
-        public const string LogisticsCollection = "";
+        public const string InProcess = "in process";
+        public const string Delivered = "delivered";
 
         #endregion
         
