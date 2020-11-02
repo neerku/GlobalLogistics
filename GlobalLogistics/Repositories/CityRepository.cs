@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using GlobalLogistics.Models;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,24 @@ namespace GlobalLogistics.Repositories
         public CityRepository(IMongoClient client)
         {
             mongoClient = client;
-           cityCollection = mongoClient.GetDatabase("logistics").GetCollection<Models.City>("city");
+           cityCollection = mongoClient.GetDatabase("logistics").GetCollection<Models.City>("cities");
+        }
+
+        public async Task<IReadOnlyList<City>> GetCitiesAsync()
+        {            
+            var cities = await cityCollection
+                .Find(Builders<City>.Filter.Empty)
+                .ToListAsync();
+            return cities;
+        }
+
+
+       public async Task<City> GetCityAsync(string cityId)
+        {
+            var city = await cityCollection
+                .Find(Builders<City>.Filter.Eq(x => x.Name, cityId))
+                .FirstOrDefaultAsync();
+            return city;
         }
     }
 }

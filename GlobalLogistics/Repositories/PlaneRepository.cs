@@ -16,7 +16,7 @@ namespace GlobalLogistics.Repositories
         public PlaneRepository(IMongoClient client)
         {
             mongoClient = client;
-            planeCollection = mongoClient.GetDatabase("logistics").GetCollection<Models.Plane>("plane");
+            planeCollection = mongoClient.GetDatabase("logistics").GetCollection<Models.Plane>("planes");
         }
 
 
