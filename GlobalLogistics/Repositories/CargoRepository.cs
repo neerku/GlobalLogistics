@@ -14,7 +14,8 @@ namespace GlobalLogistics.Repositories
         public CargoRepository(IMongoClient client)
         {
             mongoClient = client;
-            cargoCollection = mongoClient.GetDatabase("logistics").GetCollection<Models.Cargo>("cargo");
+            cargoCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
+                .GetCollection<Models.Cargo>(APIConstant.CargoCollection);
         }
     }
 }

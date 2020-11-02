@@ -15,7 +15,8 @@ namespace GlobalLogistics.Repositories
         public CityRepository(IMongoClient client)
         {
             mongoClient = client;
-           cityCollection = mongoClient.GetDatabase("logistics").GetCollection<Models.City>("cities");
+           cityCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
+                    .GetCollection<Models.City>(APIConstant.CitiesCollection);
         }
 
         public async Task<IReadOnlyList<City>> GetCitiesAsync()

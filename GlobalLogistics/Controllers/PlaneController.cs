@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GlobalLogistics.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -12,36 +13,30 @@ namespace GlobalLogistics.Controllers
     [ApiController]
     public class PlaneController : ControllerBase
     {
-        // GET: api/<PlaneController>
+        private readonly PlaneRepository _planeRepository;
+
+        public PlaneController(PlaneRepository planeRepository)
+        {
+            _planeRepository = planeRepository;
+        }
+
         [HttpGet]
-        public IEnumerable<string> Get()
+        [Route("{id}")]
+        public async Task<ActionResult> GetPlane(string id)
         {
-            return new string[] { "value1", "value2" };
+            var city = await _planeRepository.GetPlaneAsync(id);
+            if (city == null)
+                return NotFound();
+            return Ok(city);
         }
 
-        // GET api/<PlaneController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet]
+        public async Task<ActionResult> GetPlanes()
         {
-            return "value";
-        }
-
-        // POST api/<PlaneController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
-
-        // PUT api/<PlaneController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<PlaneController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            var cities = await _planeRepository.GetPlanesAsync();
+            if (cities == null)
+                return BadRequest("Not found");
+            return Ok(cities);
         }
     }
 }

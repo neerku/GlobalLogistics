@@ -13,14 +13,23 @@ namespace GlobalLogistics.Models
         private string _id;
 
         [BsonElement("_id")]
-        [JsonProperty("_id")]
         [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string Id
+        public string CallSign
         {
             get { return this._id; }
             set { this._id = value; }
         }
+
+        [BsonElement("heading")]
+        public int Heading { get; set; }
+
+        [BsonElement("route")]
+        public List<string> Route { get; set; }
+
+        public string Landed { get; set; }
+
+        [BsonElement("currentLocation")]
+        public List<string> CurrentLocation { get; set; }
 
     }
 }

@@ -16,9 +16,25 @@ namespace GlobalLogistics.Repositories
         public PlaneRepository(IMongoClient client)
         {
             mongoClient = client;
-            planeCollection = mongoClient.GetDatabase("logistics").GetCollection<Models.Plane>("planes");
+            planeCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
+                .GetCollection<Models.Plane>(APIConstant.PlanesCollection);
+        }
+
+        public async Task<IReadOnlyList<Models.Plane>> GetPlanesAsync()
+        {
+            var planes = await planeCollection
+                .Find(Builders<Models.Plane>.Filter.Empty)
+                .ToListAsync();
+            return planes;
         }
 
 
+        public async Task<Models.Plane> GetPlaneAsync(string planeId)
+        {
+            var plane = await planeCollection
+                .Find(Builders<Models.Plane>.Filter.Eq(x => x.CallSign, planeId))
+                .FirstOrDefaultAsync();
+            return plane;
+        }
     }
 }
