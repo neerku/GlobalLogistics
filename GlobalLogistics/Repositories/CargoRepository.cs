@@ -39,10 +39,10 @@ namespace GlobalLogistics.Repositories
             //    (Builders<Cargo>.Filter.Eq(x => x.Destination, location) 
             //    | Builders<Cargo>.Filter.Eq(x => x.Courier, location));
 
-            var cities = await cargoCollection
+            var cargoes = await cargoCollection
                 .Find(filter)
                 .ToListAsync();
-            return cities;
+            return cargoes;
         }
 
         public async Task<Cargo> AddCargoAsync(string location, string destination)

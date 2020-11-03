@@ -63,7 +63,7 @@ namespace GlobalLogistics.Controllers
         }
 
         [HttpPut]
-        [Route("{id}/courier/{courier}")]
+        [Route("{id}/courier/{planeId}")]
         public async Task<ActionResult> LoadCargo(string id,string planeId)
         {
             var cargo = await _cargoRepository.GetCargoAsync(id);

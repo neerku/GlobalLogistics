@@ -87,7 +87,7 @@ namespace GlobalLogistics.Controllers
 
         [HttpPut]
         [Route("{id}/route/{cityId}")]
-        public async Task<ActionResult> UpdateRouteWIthSingleCity(string id, List<string> location, int heading, string cityId)
+        public async Task<ActionResult> UpdateRouteWIthSingleCity(string id, string cityId)
         {
             var plane = await _planeRepository.GetPlaneAsync(id);
             if (plane == null)
@@ -103,7 +103,7 @@ namespace GlobalLogistics.Controllers
 
         [HttpPost]
         [Route("{id}/route/{cityId}")]
-        public async Task<ActionResult> AddCitytoRoute(string id, List<string> location, int heading, string cityId)
+        public async Task<ActionResult> AddCitytoRoute(string id, string cityId)
         {
             var plane = await _planeRepository.GetPlaneAsync(id);
             if (plane == null)
@@ -124,7 +124,7 @@ namespace GlobalLogistics.Controllers
             var plane = await _planeRepository.GetPlaneAsync(id);
             if (plane == null)
                 return NotFound("Plane Not found");
-            if(plane.Route.Count>0 && string.Compare(plane.Route.FirstOrDefault(), plane.Landed)==0)
+            
               await _planeRepository.DeleteReachedDestinationAsync(id);
            return Ok(plane);
         }
