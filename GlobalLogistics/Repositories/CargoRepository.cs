@@ -111,20 +111,20 @@ namespace GlobalLogistics.Repositories
             }
         }
 
-        public async Task<bool> UnloadCargoAsync(string id)
+        public async Task<Models.Cargo> UnloadCargoAsync(string id)
         {
             var filter = Builders<Models.Cargo>.Filter.Eq(s => s.Id, id);
             try
             {
 
                 var update = Builders<Models.Cargo>.Update
-                                 .Set(s => s.Courier, "");
+                                 .Unset(s => s.Courier);
 
 
+                var options = new FindOneAndUpdateOptions<Models.Cargo> { ReturnDocument = ReturnDocument.After };
+                var result = await cargoCollection.FindOneAndUpdateAsync(filter, update, options);
 
-                UpdateResult actionResult = await cargoCollection.UpdateOneAsync(filter, update);
-
-                return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+                return result;
             }
             catch (Exception ex)
             {
@@ -132,7 +132,7 @@ namespace GlobalLogistics.Repositories
             }
         }
 
-        public async Task<bool> MoveCargoAsync(string id, string location)
+        public async Task<Cargo> MoveCargoAsync(string id, string location)
         {
             var filter = Builders<Models.Cargo>.Filter.Eq(s => s.Id, id);
             try
@@ -143,9 +143,10 @@ namespace GlobalLogistics.Repositories
 
 
 
-                UpdateResult actionResult = await cargoCollection.UpdateOneAsync(filter, update);
+                var options = new FindOneAndUpdateOptions<Models.Cargo> { ReturnDocument = ReturnDocument.After };
+                var result = await cargoCollection.FindOneAndUpdateAsync(filter, update, options);
 
-                return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+                return result;
             }
             catch (Exception ex)
             {
