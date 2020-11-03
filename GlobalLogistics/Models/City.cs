@@ -25,6 +25,6 @@ namespace GlobalLogistics.Models
         public string Country { get; set; }
 
         [BsonElement("position")]
-        public List<string> Location { get; set; }
+        public List<double> Location { get; set; }
     }
 }

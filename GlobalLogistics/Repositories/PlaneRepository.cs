@@ -48,7 +48,7 @@ namespace GlobalLogistics.Repositories
 
             try
             {
-                if (string.IsNullOrWhiteSpace(cityId))
+                if (!string.IsNullOrWhiteSpace(cityId))
                 {
                         update = Builders<Models.Plane>.Update
                                         .Set(s => s.Heading, heading)

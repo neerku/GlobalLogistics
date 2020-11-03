@@ -8,7 +8,7 @@ namespace GlobalLogistics
     public static class APIConstant
     {
         #region Databases
-        public const string LogisticsDatabase = "logistics";
+        public const string LogisticsDatabase = "test";
 
         #endregion
 
