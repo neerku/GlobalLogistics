@@ -13,7 +13,8 @@ namespace GlobalLogistics.Models
         private string _id;
 
         [BsonElement("_id")]
-        [BsonId]
+       [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
         public string Id
         {
             get { return this._id; }

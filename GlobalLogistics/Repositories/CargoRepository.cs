@@ -33,10 +33,11 @@ namespace GlobalLogistics.Repositories
         {
 
             var filter = Builders<Cargo>.Filter.Eq(x => x.Location,location);
-            filter = filter & (Builders<Cargo>.Filter.Eq(x => x.Status, APIConstant.InProcess)) & 
-                (Builders<Cargo>.Filter.Eq(x => x.Destination, location) 
-                | Builders<Cargo>.Filter.Eq(x => x.Courier, location)
-                | Builders<Cargo>.Filter.Eq(x => x.Id, location));
+            filter = filter & (Builders<Cargo>.Filter.Eq(x => x.Status, APIConstant.InProcess));
+
+            //filter = filter & (Builders<Cargo>.Filter.Eq(x => x.Status, APIConstant.InProcess)) & 
+            //    (Builders<Cargo>.Filter.Eq(x => x.Destination, location) 
+            //    | Builders<Cargo>.Filter.Eq(x => x.Courier, location));
 
             var cities = await cargoCollection
                 .Find(filter)
@@ -51,6 +52,7 @@ namespace GlobalLogistics.Repositories
             {
                 var newCargo = new Cargo
                 {
+                    
                     Location= location,
                     Destination=destination,
                     Status=APIConstant.InProcess
