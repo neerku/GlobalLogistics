@@ -52,7 +52,7 @@ namespace GlobalLogistics.Repositories
             {
                 var newCargo = new Cargo
                 {
-                    
+                    Received=DateTime.UtcNow,
                     Location= location,
                     Destination=destination,
                     Status=APIConstant.InProcess
@@ -75,8 +75,7 @@ namespace GlobalLogistics.Repositories
             {
 
                var update = Builders<Models.Cargo>.Update
-                                .Set(s => s.Status, APIConstant.Delivered)
-                                .Set(s => s.Received, DateTime.UtcNow);
+                                .Set(s => s.Status, APIConstant.Delivered);
                
 
 
@@ -118,7 +117,7 @@ namespace GlobalLogistics.Repositories
             {
 
                 var update = Builders<Models.Cargo>.Update
-                                 .Unset(s => s.Courier);
+                                 .Set(s => s.Courier,string.Empty);
 
 
                 var options = new FindOneAndUpdateOptions<Models.Cargo> { ReturnDocument = ReturnDocument.After };

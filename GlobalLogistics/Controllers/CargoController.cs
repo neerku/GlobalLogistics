@@ -96,11 +96,11 @@ namespace GlobalLogistics.Controllers
             var cargo = await _cargoRepository.GetCargoAsync(id);
             if (cargo == null)
                 return NotFound("Cargo Not found");
-            var plane = await _planeRepository.GetPlaneAsync(cargo.Courier);
-            if (plane == null)
-                return NotFound("Plane Not found");
-            if(plane.Landed!=cargo.Destination)
-                return NotFound("Plane is not yet landed");
+            //var plane = await _planeRepository.GetPlaneAsync(cargo.Courier);
+            //if (plane == null)
+            //    return NotFound("Plane Not found");
+            //if(plane.Landed!=cargo.Destination)
+            //    return NotFound("Plane is not yet landed");
             var result = await _cargoRepository.MoveCargoAsync(id, location);
 
             return Ok(result);
