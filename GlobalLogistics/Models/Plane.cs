@@ -29,7 +29,7 @@ namespace GlobalLogistics.Models
         public string Landed { get; set; }
 
         [BsonElement("currentLocation")]
-        public List<string> CurrentLocation { get; set; }
+        public List<double> CurrentLocation { get; set; }
 
     }
 }

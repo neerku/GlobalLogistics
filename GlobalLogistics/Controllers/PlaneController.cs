@@ -53,32 +53,36 @@ namespace GlobalLogistics.Controllers
                 return NotFound("Plane Not found");
             if (!Enumerable.Range(0, 360).Contains(heading))
                 return BadRequest("Header is out of Range");
-            if (!ValidateLocation(location.ToList()))
-              return BadRequest("Location is out of Range");
+            var locationValidation = ValidateLocation(location.ToList());
+            if (!locationValidation.Item1)
+                return BadRequest("Location is out of Range");
 
-            await _planeRepository.UpdateLocationHeadingAndCityAsync(id, location.ToList(), heading);
+            var updatedPlane = await _planeRepository.UpdateLocationHeadingAndCityAsync(id, locationValidation.Item2, heading);
 
-            return Ok(plane);
+            return Ok(updatedPlane);
+            
         }
 
         [HttpPut]
-        [Route("{id}/location/{location}/{heading}/{cityId}")]
-        public async Task<ActionResult> UpdatePlaneLocationHeadingAndCity(string id, List<string> location, int heading,string cityId)
+        [ArrayInput("location")]
+        [Route("{id}/location/{location?}/{heading}/{cityId}")]
+        public async Task<ActionResult> UpdatePlaneLocationHeadingAndCity(string id, [FromRoute] string[] location, int heading,string cityId)
         {
             var plane = await _planeRepository.GetPlaneAsync(id);
             if (plane == null)
                 return NotFound("Plane Not found");
             if (!Enumerable.Range(0, 360).Contains(heading))
                 return BadRequest("Header is out of Range");
-            if (ValidateLocation(location))
+            var locationValidation = ValidateLocation(location.ToList());
+            if (!locationValidation.Item1)
                 return BadRequest("Location is out of Range");
             var city = await _cityRepository.GetCityAsync(cityId);
             if (city == null)
                 return BadRequest("City is Invalid");
 
-            await _planeRepository.UpdateLocationHeadingAndCityAsync(id, location, heading, cityId);
+            var updatedPlane =await _planeRepository.UpdateLocationHeadingAndCityAsync(id, locationValidation.Item2, heading, cityId);
 
-            return Ok(plane);
+            return Ok(updatedPlane);
         }
 
         [HttpPut]
@@ -125,8 +129,9 @@ namespace GlobalLogistics.Controllers
            return Ok(plane);
         }
 
-        private Boolean ValidateLocation(List<string> location) 
+        private (Boolean,List<double>) ValidateLocation(List<string> location) 
         {
+            var newList = new List<double>();
             if (location.Count == 2) 
             {
                 try
@@ -134,17 +139,18 @@ namespace GlobalLogistics.Controllers
                     foreach (var loc in location)
                     {
                         Double db = Convert.ToDouble(loc);
+                        newList.Add(db);
                     }
-                    return true;
+                    return (true, newList);
                 }
                 catch (FormatException)
                 {
 
-                    return false;
+                    return (false, newList);
                 }
 
             }
-            return false;
+            return (false, newList);
         }
     }
 }

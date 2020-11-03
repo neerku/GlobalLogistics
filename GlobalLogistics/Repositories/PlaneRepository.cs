@@ -1,4 +1,5 @@
 ﻿using GlobalLogistics.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -40,7 +41,7 @@ namespace GlobalLogistics.Repositories
             return plane;
         }
                
-        public async Task<bool> UpdateLocationHeadingAndCityAsync(string id, List<string> location, int heading,string cityId = "")
+        public async Task<Models.Plane> UpdateLocationHeadingAndCityAsync(string id, List<double> location, int heading,string cityId = "")
         {
             var filter = Builders<Models.Plane>.Filter.Eq(s => s.Callsign, id);
             UpdateDefinition<Models.Plane> update;
@@ -63,10 +64,10 @@ namespace GlobalLogistics.Repositories
 
                 }
 
-            
-             UpdateResult actionResult = await planeCollection.UpdateOneAsync(filter, update);
+                var options = new FindOneAndUpdateOptions<Models.Plane> { ReturnDocument = ReturnDocument.After };
+                var result = await planeCollection.FindOneAndUpdateAsync(filter, update, options);
 
-            return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+            return result;
             }
             catch (Exception ex)
             {
