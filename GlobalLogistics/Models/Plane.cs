@@ -14,7 +14,7 @@ namespace GlobalLogistics.Models
 
         [BsonElement("_id")]
         [BsonId]
-        public string CallSign
+        public string Callsign
         {
             get { return this._id; }
             set { this._id = value; }

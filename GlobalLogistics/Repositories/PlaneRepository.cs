@@ -35,14 +35,14 @@ namespace GlobalLogistics.Repositories
         public async Task<Models.Plane> GetPlaneAsync(string planeId)
         {
             var plane = await planeCollection
-                .Find(Builders<Models.Plane>.Filter.Eq(x => x.CallSign, planeId))
+                .Find(Builders<Models.Plane>.Filter.Eq(x => x.Callsign, planeId))
                 .FirstOrDefaultAsync();
             return plane;
         }
                
         public async Task<bool> UpdateLocationHeadingAndCityAsync(string id, List<string> location, int heading,string cityId = "")
         {
-            var filter = Builders<Models.Plane>.Filter.Eq(s => s.CallSign, id);
+            var filter = Builders<Models.Plane>.Filter.Eq(s => s.Callsign, id);
             UpdateDefinition<Models.Plane> update;
 
             try
@@ -76,7 +76,7 @@ namespace GlobalLogistics.Repositories
 
         public async Task<bool> ReplaceRouteAsync(string id, string cityId)
         {
-            var filter = Builders<Models.Plane>.Filter.Eq(s => s.CallSign, id);
+            var filter = Builders<Models.Plane>.Filter.Eq(s => s.Callsign, id);
             UpdateDefinition<Models.Plane> update;
 
             try
@@ -96,7 +96,7 @@ namespace GlobalLogistics.Repositories
 
         public async Task<bool> AddCityToRouteAsync(string id, string cityId)
         {
-            var filter = Builders<Models.Plane>.Filter.Eq(s => s.CallSign, id);
+            var filter = Builders<Models.Plane>.Filter.Eq(s => s.Callsign, id);
             UpdateDefinition<Models.Plane> update;
 
             try
@@ -115,7 +115,7 @@ namespace GlobalLogistics.Repositories
 
         public async Task<bool> DeleteReachedDestinationAsync(string id)
         {
-            var filter = Builders<Models.Plane>.Filter.Eq(s => s.CallSign, id);
+            var filter = Builders<Models.Plane>.Filter.Eq(s => s.Callsign, id);
             UpdateDefinition<Models.Plane> update;
 
             try

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GlobalLogistics.ActionFilters;
 using GlobalLogistics.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,18 +44,19 @@ namespace GlobalLogistics.Controllers
         }
 
         [HttpPut]
-        [Route("{id}/location/{location}/{heading}")]
-        public async Task<ActionResult> UpdatePlaneLocationAndHeading(string id,List<string> location, int heading)
+        [ArrayInput("location")]
+        [Route("{id}/location/{location?}/{heading}")]
+        public async Task<ActionResult> UpdatePlaneLocationAndHeading(string id,[FromRoute]string[] location, int heading)
         {
             var plane = await _planeRepository.GetPlaneAsync(id);
             if (plane == null)
                 return NotFound("Plane Not found");
             if (!Enumerable.Range(0, 360).Contains(heading))
                 return BadRequest("Header is out of Range");
-            if (ValidateLocation(location))
-                return BadRequest("Location is out of Range");
+            if (!ValidateLocation(location.ToList()))
+              return BadRequest("Location is out of Range");
 
-            await _planeRepository.UpdateLocationHeadingAndCityAsync(id,location,heading);
+            await _planeRepository.UpdateLocationHeadingAndCityAsync(id, location.ToList(), heading);
 
             return Ok(plane);
         }
