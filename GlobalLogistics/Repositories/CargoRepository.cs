@@ -117,7 +117,7 @@ namespace GlobalLogistics.Repositories
             {
 
                 var update = Builders<Models.Cargo>.Update
-                                 .Set(s => s.Courier,string.Empty);
+                                 .Unset(s => s.Courier);
 
 
                 var options = new FindOneAndUpdateOptions<Models.Cargo> { ReturnDocument = ReturnDocument.After };
