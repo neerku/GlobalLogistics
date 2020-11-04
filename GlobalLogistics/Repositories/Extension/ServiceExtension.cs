@@ -1,4 +1,5 @@
 ﻿using GlobalLogistics.Models;
+using GlobalLogistics.Repositories.ChangeStream;
 using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Driver;
 using System;
@@ -22,6 +23,9 @@ namespace GlobalLogistics.Repositories.Extension
             services.AddSingleton<PlaneRepository>();
             services.AddSingleton<CargoRepository>();
             services.AddSingleton<CityRepository>();
+
+            var wa = new WatchStream();
+            Task.Run(() => wa.StartCollectionWatch(client)).ConfigureAwait(false);
         }
     }
 }
