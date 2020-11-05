@@ -1,23 +1,35 @@
 ﻿using GlobalDelivery.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.GeoJsonObjectModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace GlobalDelivery.Repositories.ChangeStream
 {
     public class WatchStream
     {
-        public void StartCollectionWatch(MongoClient mongoClient)
+        private readonly IMongoCollection<Models.Cargo> cargoCollection;
+        private readonly IMongoCollection<Models.Plane> planeCollection;
+        private readonly IMongoCollection<Models.City> cityCollection;
+        
+        public WatchStream(MongoClient mongoClient) 
         {
-           var cargoCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
-                .GetCollection<Models.Cargo>(APIConstant.CargoCollection);
+           this.cargoCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
+                 .GetCollection<Models.Cargo>(APIConstant.CargoCollection);
 
+            this.planeCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
+                .GetCollection<Models.Plane>(APIConstant.PlanesCollection);
+
+           this.cityCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
+                .GetCollection<Models.City>(APIConstant.CitiesCollection);
+
+        }
+
+        public static List<Cargo> newlyAddedCargoList = new List<Cargo>();
+        public void StartCollectionWatch()
+        {
             var options = new ChangeStreamOptions { FullDocument = ChangeStreamFullDocumentOption.UpdateLookup };
             var pipeline = new EmptyPipelineDefinition<ChangeStreamDocument<Cargo>>().Match("{ operationType: { $in: [ 'insert'] } }");
 
@@ -29,8 +41,76 @@ namespace GlobalDelivery.Repositories.ChangeStream
                 enumerator.MoveNext();
                 //var ct = cursor.GetResumeToken();
                 ChangeStreamDocument<Cargo> doc = enumerator.Current;
-                // Do something here with your document
+                newlyAddedCargoList.Add(doc.FullDocument);
                 Console.WriteLine(doc.DocumentKey);
+            }
+
+        }
+
+        public async Task AssignPlaneToCargo()
+        {
+            var firstKm = 500000;
+            while (true)
+            {
+                try
+                {
+                    if (WatchStream.newlyAddedCargoList.Any())
+                    {
+                        var cargo = WatchStream.newlyAddedCargoList.FirstOrDefault();
+                        var city = await cityCollection
+                                 .Find(Builders<City>.Filter.Eq(x => x.Name, cargo.Location))
+                                       .FirstOrDefaultAsync();
+                        for (int i = 1; i < 100; i++)
+                        {
+                            var nearestPlanes = this.GetNearestPlanes(city, firstKm*i);
+                            if (nearestPlanes.Any())
+                            {
+                                var isAssigned = await this.LoadCargoAsync(cargo.Id, nearestPlanes.First().Callsign);
+                                newlyAddedCargoList.RemoveAt(0);
+                            }
+
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                    continue;
+                }
+            }
+
+        }
+
+        public List<Models.Plane> GetNearestPlanes(City city, double distance)
+        {
+            var lng = city.Location[0];
+            var lat = city.Location[1];
+            var point = new GeoJson2DGeographicCoordinates(lng, lat);
+            var pnt = new GeoJsonPoint<GeoJson2DGeographicCoordinates>(point);
+           var fil = Builders<Models.Plane>.Filter.NearSphere(p => p.CurrentLocation, pnt, distance);
+           // This is the actual query execution
+            List<Models.Plane> items = planeCollection.Find(fil).ToListAsync().Result;
+            return items;
+        }
+
+        public async Task<bool> LoadCargoAsync(string id, string planeId)
+        {
+            var filter = Builders<Models.Cargo>.Filter.Eq(s => s.Id, id);
+            try
+            {
+
+                var update = Builders<Models.Cargo>.Update
+                                 .Set(s => s.Courier, planeId);
+
+
+
+                UpdateResult actionResult = await cargoCollection.UpdateOneAsync(filter, update);
+
+                return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
     }
