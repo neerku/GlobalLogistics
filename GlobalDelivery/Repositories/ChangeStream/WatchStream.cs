@@ -88,8 +88,7 @@ namespace GlobalDelivery.Repositories.ChangeStream
             var point = new GeoJson2DGeographicCoordinates(lng, lat);
             var pnt = new GeoJsonPoint<GeoJson2DGeographicCoordinates>(point);
            var fil = Builders<Models.Plane>.Filter.NearSphere(p => p.CurrentLocation, pnt, distance);
-           // This is the actual query execution
-            List<Models.Plane> items = planeCollection.Find(fil).ToListAsync().Result;
+           List<Models.Plane> items = planeCollection.Find(fil).ToListAsync().Result;
             return items;
         }
 
