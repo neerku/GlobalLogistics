@@ -5,17 +5,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="Views\Home\Indexgl.cshtml" />
-    <Content Remove="wwwroot\api.js" />
     <Content Remove="wwwroot\layout.css" />
-    <Content Remove="wwwroot\main.js" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Views\Home\Indexgl.cshtml" />
-    <None Include="wwwroot\api.js" />
     <None Include="wwwroot\layout.css" />
-    <None Include="wwwroot\main.js" />
   </ItemGroup>
 
   <ItemGroup>
