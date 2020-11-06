@@ -50,7 +50,7 @@ namespace GlobalDeliveryBackground.ChangeStream
 
         public async Task AssignPlaneToCargo()
         {
-            var firstKm = 500000;
+           
             while (true)
             {
                 try
@@ -61,16 +61,15 @@ namespace GlobalDeliveryBackground.ChangeStream
                         var city = await cityCollection
                                  .Find(Builders<City>.Filter.Eq(x => x.Name, cargo.Location))
                                        .FirstOrDefaultAsync();
-                        for (int i = 1; i < 100; i++)
-                        {
-                            var nearestPlanes = this.GetNearestPlanes(city, firstKm*i);
+                        
+                            var nearestPlanes = this.GetNearestPlanes(city);
                             if (nearestPlanes.Any())
                             {
                                 var isAssigned = await this.LoadCargoAsync(cargo.Id, nearestPlanes.First().Callsign);
                                 newlyAddedCargoList.RemoveAt(0);
                             }
 
-                        }
+                        
                     }
                 }
                 catch (Exception ex)
@@ -82,13 +81,13 @@ namespace GlobalDeliveryBackground.ChangeStream
 
         }
 
-        public List<Models.Plane> GetNearestPlanes(City city, double distance)
+        public List<Models.Plane> GetNearestPlanes(City city)
         {
             var lng = city.Location[0];
             var lat = city.Location[1];
             var point = new GeoJson2DGeographicCoordinates(lng, lat);
             var pnt = new GeoJsonPoint<GeoJson2DGeographicCoordinates>(point);
-           var fil = Builders<Models.Plane>.Filter.NearSphere(p => p.CurrentLocation, pnt, distance);
+           var fil = Builders<Models.Plane>.Filter.NearSphere(p => p.CurrentLocation, pnt);
            List<Models.Plane> items = planeCollection.Find(fil).ToListAsync().Result;
             return items;
         }
