@@ -24,9 +24,9 @@ namespace GlobalDelivery.Repositories.Extension
             services.AddSingleton<CargoRepository>();
             services.AddSingleton<CityRepository>();
 
-            var wa = new WatchStream(client);
-            Task.Run(() => wa.StartCollectionWatch()).ConfigureAwait(false);
-            Task.Run(() => wa.AssignPlaneToCargo()).ConfigureAwait(false);
+            //var wa = new WatchStream(client);
+            //Task.Run(() => wa.StartCollectionWatch()).ConfigureAwait(false);
+            //Task.Run(() => wa.AssignPlaneToCargo()).ConfigureAwait(false);
         }
     }
 }
