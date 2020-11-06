@@ -96,10 +96,10 @@ namespace GlobalDelivery.Controllers
             var cargo = await _cargoRepository.GetCargoAsync(id);
             if (cargo == null)
                 return NotFound("Cargo Not found");
-            var city = await _cityRepository.GetCityAsync(id);
+            var city = await _cityRepository.GetCityAsync(location);
             if (city == null)
                   return NotFound("Location Not found");
-            var result = await _cargoRepository.MoveCargoAsync(id, location);
+            var result = await _cargoRepository.MoveCargoAsync(id, city.Name);
 
             return Ok(result);
         }
