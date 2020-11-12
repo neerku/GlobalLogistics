@@ -27,5 +27,8 @@ namespace GlobalDelivery.Models
         [BsonElement("currentLocation")]
         public List<double> CurrentLocation { get; set; }
 
+        [BsonElement("isHubCarrier")]
+        public bool IsHubCarrier { get; set; }
+
     }
 }

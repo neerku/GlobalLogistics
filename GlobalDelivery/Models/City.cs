@@ -21,5 +21,11 @@ namespace GlobalDelivery.Models
 
         [BsonElement("position")]
         public List<double> Location { get; set; }
+
+        [BsonElement("region")]
+        public string Region { get; set; }
+
+        [BsonElement("isHub")]
+        public bool IsHub { get; set; }
     }
 }

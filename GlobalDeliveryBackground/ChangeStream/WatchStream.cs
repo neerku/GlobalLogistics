@@ -1,6 +1,7 @@
 ﻿
-using GlobalDeliveryBackground.Models;
+
 using MongoDB.Driver;
+using GlobalDelivery.Models;
 using MongoDB.Driver.GeoJsonObjectModel;
 using System;
 using System.Collections.Generic;
@@ -11,20 +12,20 @@ namespace GlobalDeliveryBackground.ChangeStream
 {
     public class WatchStream
     {
-        private readonly IMongoCollection<Models.Cargo> cargoCollection;
-        private readonly IMongoCollection<Models.Plane> planeCollection;
-        private readonly IMongoCollection<Models.City> cityCollection;
+        private readonly IMongoCollection<Cargo> cargoCollection;
+        private readonly IMongoCollection<Plane> planeCollection;
+        private readonly IMongoCollection<City> cityCollection;
         
         public WatchStream(MongoClient mongoClient) 
         {
            this.cargoCollection = mongoClient.GetDatabase(BackgroundConstant.LogisticsDatabase)
-                 .GetCollection<Models.Cargo>(BackgroundConstant.CargoCollection);
+                 .GetCollection<Cargo>(BackgroundConstant.CargoCollection);
 
             this.planeCollection = mongoClient.GetDatabase(BackgroundConstant.LogisticsDatabase)
-                .GetCollection<Models.Plane>(BackgroundConstant.PlanesCollection);
+                .GetCollection<Plane>(BackgroundConstant.PlanesCollection);
 
            this.cityCollection = mongoClient.GetDatabase(BackgroundConstant.LogisticsDatabase)
-                .GetCollection<Models.City>(BackgroundConstant.CitiesCollection);
+                .GetCollection<City>(BackgroundConstant.CitiesCollection);
 
         }
 
@@ -38,7 +39,7 @@ namespace GlobalDeliveryBackground.ChangeStream
 
             var enumerator = cursor.ToEnumerable().GetEnumerator();
             while (true)
-            {
+            { 
                 enumerator.MoveNext();
                 //var ct = cursor.GetResumeToken();
                 ChangeStreamDocument<Cargo> doc = enumerator.Current;
@@ -81,24 +82,24 @@ namespace GlobalDeliveryBackground.ChangeStream
 
         }
 
-        public List<Models.Plane> GetNearestPlanes(City city)
+        public List<Plane> GetNearestPlanes(City city)
         {
             var lng = city.Location[0];
             var lat = city.Location[1];
             var point = new GeoJson2DGeographicCoordinates(lng, lat);
             var pnt = new GeoJsonPoint<GeoJson2DGeographicCoordinates>(point);
-           var fil = Builders<Models.Plane>.Filter.NearSphere(p => p.CurrentLocation, pnt);
-           List<Models.Plane> items = planeCollection.Find(fil).ToListAsync().Result;
+           var fil = Builders<Plane>.Filter.NearSphere(p => p.CurrentLocation, pnt);
+           List<Plane> items = planeCollection.Find(fil).ToListAsync().Result;
             return items;
         }
 
         public async Task<bool> LoadCargoAsync(string id, string planeId)
         {
-            var filter = Builders<Models.Cargo>.Filter.Eq(s => s.Id, id);
+            var filter = Builders<Cargo>.Filter.Eq(s => s.Id, id);
             try
             {
 
-                var update = Builders<Models.Cargo>.Update
+                var update = Builders<Cargo>.Update
                                  .Set(s => s.Courier, planeId);
 
 
