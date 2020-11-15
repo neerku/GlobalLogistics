@@ -184,8 +184,6 @@ namespace GlobalDelivery.Repositories
 
         }
 
-        
-
         public async Task<bool> LoadCargoAsync(string id, string planeId)
         {
             var filter = Builders<Cargo>.Filter.Eq(s => s.Id, id);
@@ -218,8 +216,8 @@ namespace GlobalDelivery.Repositories
 
                 UpdateResult actionResult = await planeCollection.UpdateOneAsync(filter, update);
 
-                update = Builders<Models.Plane>.Update.PushEach(s => s.Route, new List<string> { plane.Route.First() }, position: plane.Route.Count());
-
+                update = Builders<Models.Plane>.Update.PushEach(s => s.Route, new List<string> { plane.Route.First() }, position: plane.Route.Count()-1);
+                actionResult = await planeCollection.UpdateOneAsync(filter, update);
                 return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
             }
             catch (Exception ex)

@@ -126,9 +126,12 @@ namespace GlobalDelivery.Controllers
             if (plane == null)
                 return NotFound("Plane Not found");
             
-              await _planeRepository.DeleteReachedDestinationAsync(plane);
-            await _planeRepository.ProcessCargoUnloadingAsync(plane);
-            await _planeRepository.ProcessCargoLoadingAsync(plane); 
+            var update=  await _planeRepository.DeleteReachedDestinationAsync(plane);
+            if (update == true)
+            {
+                await _planeRepository.ProcessCargoUnloadingAsync(plane);
+                await _planeRepository.ProcessCargoLoadingAsync(plane);
+            }
 
            return Ok(plane);
         }
