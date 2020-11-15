@@ -13,6 +13,7 @@ namespace GlobalDelivery.Repositories
     {
         private readonly IMongoCollection<Models.Plane> planeCollection;
         private readonly IMongoCollection<Models.City> cityCollection;
+        private readonly IMongoCollection<Models.Cargo> cargoCollection;
         private readonly IMongoClient mongoClient;
 
         public PlaneRepository(IMongoClient client)
@@ -22,6 +23,8 @@ namespace GlobalDelivery.Repositories
                 .GetCollection<Models.Plane>(APIConstant.PlanesCollection);
             cityCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
                     .GetCollection<Models.City>(APIConstant.CitiesCollection);
+            cargoCollection = mongoClient.GetDatabase(APIConstant.LogisticsDatabase)
+                   .GetCollection<Cargo>(APIConstant.CargoCollection);
         }
 
         public async Task<IReadOnlyList<Models.Plane>> GetPlanesAsync()
@@ -114,6 +117,23 @@ namespace GlobalDelivery.Repositories
             }
         }
 
+        public async Task<IReadOnlyList<Cargo>> GetCargoesAsync(string location,string planeId)
+        {
+
+            var filter = Builders<Cargo>.Filter.Eq(x => x.Location, location);
+            filter &= (Builders<Cargo>.Filter.Eq(x => x.Status, APIConstant.InProcess));
+            filter &= (Builders<Cargo>.Filter.Eq(x => x.Courier, planeId));
+
+            //filter = filter & (Builders<Cargo>.Filter.Eq(x => x.Status, APIConstant.InProcess)) & 
+            //    (Builders<Cargo>.Filter.Eq(x => x.Destination, location) 
+            //    | Builders<Cargo>.Filter.Eq(x => x.Courier, location));
+
+            var cargoes = await cargoCollection
+                .Find(filter)
+                .ToListAsync();
+            return cargoes;
+        }
+
         public async Task<bool> DeleteReachedDestinationAsync(string id)
         {
             var filter = Builders<Models.Plane>.Filter.Eq(s => s.Callsign, id);
@@ -125,6 +145,7 @@ namespace GlobalDelivery.Repositories
 
                 UpdateResult actionResult = await planeCollection.UpdateOneAsync(filter, update);
 
+                
                 return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
             }
             catch (Exception ex)

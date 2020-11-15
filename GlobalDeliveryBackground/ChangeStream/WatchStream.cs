@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace GlobalDeliveryBackground.ChangeStream
 {
@@ -66,9 +67,30 @@ namespace GlobalDeliveryBackground.ChangeStream
                             var nearestPlanes = this.GetNearestPlanes(city);
                             if (nearestPlanes.Any())
                             {
-                                var isAssigned = await this.LoadCargoAsync(cargo.Id, nearestPlanes.First().Callsign);
+                                Plane nearbyPLane= new Plane();
+                                for (int i = 0; i < nearestPlanes.Count(); i++)
+                                {
+                                if(nearestPlanes[i].Route.Count>10)
+                                     continue;
+                                    else
+                                    {
+                                    nearbyPLane = nearestPlanes[i];
+                                    break;
+                                    }
+                                }
+                            if (string.IsNullOrWhiteSpace(nearbyPLane.Callsign))
+                            {
+                                Thread.Sleep(5000);
+                                continue;
+                            }
+                            else
+                            {
+                                var isAssigned = await this.LoadCargoAsync(cargo.Id, nearbyPLane.Callsign);
+                                await this.CallPlane(nearbyPLane.Callsign, city.Name);
                                 newlyAddedCargoList.RemoveAt(0);
                             }
+
+                        }
 
                         
                     }
@@ -90,6 +112,7 @@ namespace GlobalDeliveryBackground.ChangeStream
             var pnt = new GeoJsonPoint<GeoJson2DGeographicCoordinates>(point);
            var fil = Builders<Plane>.Filter.NearSphere(p => p.CurrentLocation, pnt);
            List<Plane> items = planeCollection.Find(fil).ToListAsync().Result;
+
             return items;
         }
 
@@ -105,6 +128,33 @@ namespace GlobalDeliveryBackground.ChangeStream
 
 
                 UpdateResult actionResult = await cargoCollection.UpdateOneAsync(filter, update);
+
+                return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<bool> CallPlane(string id,string cityName)
+        {
+            var plane = await planeCollection
+                .Find(Builders<Plane>.Filter.Eq(x => x.Callsign, id))
+                .FirstOrDefaultAsync();
+
+            if (plane.Route.Contains(cityName))
+                return true;
+
+            var filter = Builders<Plane>.Filter.Eq(s => s.Callsign, id);
+            //filter &= Builders<Plane>.Filter.Eq(s => s.Route, cityName);
+            UpdateDefinition<Plane> update;
+
+            try
+            {
+                update = Builders<Plane>.Update.PushEach(s => s.Route, new List<string> { cityName },position:1);
+
+                UpdateResult actionResult = await planeCollection.UpdateOneAsync(filter, update);
 
                 return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
             }

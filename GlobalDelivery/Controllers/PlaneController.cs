@@ -16,12 +16,13 @@ namespace GlobalDelivery.Controllers
     {
         private readonly PlaneRepository _planeRepository;
         private readonly CityRepository _cityRepository;
-               
-                
-        public PlaneController(PlaneRepository planeRepository,CityRepository cityRepository)
+        private readonly CargoRepository _cargoRepository;
+
+        public PlaneController(PlaneRepository planeRepository,CityRepository cityRepository,CargoRepository cargoRepository)
         {
             _planeRepository = planeRepository;
             _cityRepository = cityRepository;
+            _cargoRepository = cargoRepository;
         }
 
         [HttpGet]
@@ -126,6 +127,9 @@ namespace GlobalDelivery.Controllers
                 return NotFound("Plane Not found");
             
               await _planeRepository.DeleteReachedDestinationAsync(id);
+           var cargo= await _planeRepository.GetCargoesAsync(plane.Route.FirstOrDefault(),id);
+           var iscargoUnloaded = await _cargoRepository.UpdateStatusDeliveredAsync(cargo.Select(x => x.Id).ToList());
+
            return Ok(plane);
         }
 

@@ -68,20 +68,22 @@ namespace GlobalDelivery.Repositories
             }
         }
 
-        public async Task<bool> UpdateStatusDeliveredAsync(string id)
+        public async Task<bool> UpdateStatusDeliveredAsync(List<string> ids)
         {
-            var filter = Builders<Models.Cargo>.Filter.Eq(s => s.Id, id);
+
+            var filter = Builders<Models.Cargo>.Filter.In(s => s.Id, ids);
            try
             {
 
                var update = Builders<Models.Cargo>.Update
-                                .Set(s => s.Status, APIConstant.Delivered);
-               
+                                .Set(s => s.Status, APIConstant.Delivered)
+                                .Set(s => s.DeliveryDateTime, DateTime.UtcNow);
 
 
-                UpdateResult actionResult = await cargoCollection.UpdateOneAsync(filter, update);
 
-                return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+                UpdateResult actionResult = await cargoCollection.UpdateManyAsync(filter, update);
+
+                return actionResult.IsAcknowledged;
             }
             catch (Exception ex)
             {
@@ -139,7 +141,7 @@ namespace GlobalDelivery.Repositories
 
                 var update = Builders<Models.Cargo>.Update
                                  .Set(s => s.Location, location);
-
+                                  
 
 
                 var options = new FindOneAndUpdateOptions<Models.Cargo> { ReturnDocument = ReturnDocument.After };

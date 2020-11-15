@@ -25,6 +25,8 @@ namespace GlobalDelivery.Models
 
         public DateTime Received { get; set; }
 
+        public DateTime? DeliveryDateTime { get; set; }
+
         public string Status { get; set; }
     }
 }

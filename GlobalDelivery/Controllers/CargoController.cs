@@ -57,7 +57,7 @@ namespace GlobalDelivery.Controllers
             var cargo = await _cargoRepository.GetCargoAsync(id);
             if (cargo == null)
                 return NotFound("Cargo Not found");
-           var result =await _cargoRepository.UpdateStatusDeliveredAsync(id);
+           var result =await _cargoRepository.UpdateStatusDeliveredAsync(new List<string> { id });
             
             return Ok(result);
         }
