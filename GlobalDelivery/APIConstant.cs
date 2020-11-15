@@ -23,6 +23,7 @@ namespace GlobalDelivery
         #region Cargo Status
 
         public const string InProcess = "in process";
+        public const string InTransit = "in transit";
         public const string Delivered = "delivered";
 
         #endregion

@@ -126,13 +126,14 @@ namespace GlobalDelivery.Controllers
             if (plane == null)
                 return NotFound("Plane Not found");
             
-              await _planeRepository.DeleteReachedDestinationAsync(id);
-           var cargo= await _planeRepository.GetCargoesAsync(plane.Route.FirstOrDefault(),id);
-           var iscargoUnloaded = await _cargoRepository.UpdateStatusDeliveredAsync(cargo.Select(x => x.Id).ToList());
+              await _planeRepository.DeleteReachedDestinationAsync(plane);
+            await _planeRepository.ProcessCargoUnloadingAsync(plane);
+            await _planeRepository.ProcessCargoLoadingAsync(plane); 
 
            return Ok(plane);
         }
 
+      
         private (Boolean,List<double>) ValidateLocation(List<string> location) 
         {
             var newList = new List<double>();

@@ -117,26 +117,99 @@ namespace GlobalDelivery.Repositories
             }
         }
 
-        public async Task<IReadOnlyList<Cargo>> GetCargoesAsync(string location,string planeId)
+        public async Task<bool> ProcessCargoUnloadingAsync(Models.Plane plane)
         {
+            var cargoes = new List<Cargo>();
+            UpdateDefinition<Cargo> updateDefinition;
+            if (plane.IsHubCarrier == true)
+            {
+                var landingCity = await cityCollection
+                  .Find(Builders<City>.Filter.Eq(x => x.Name, plane.Route.FirstOrDefault()))
+                  .FirstOrDefaultAsync();
 
-            var filter = Builders<Cargo>.Filter.Eq(x => x.Location, location);
-            filter &= (Builders<Cargo>.Filter.Eq(x => x.Status, APIConstant.InProcess));
-            filter &= (Builders<Cargo>.Filter.Eq(x => x.Courier, planeId));
+                var cities = await cityCollection
+                  .Find(Builders<City>.Filter.Eq(x => x.Region, landingCity.Region))
+                  .ToListAsync();
 
-            //filter = filter & (Builders<Cargo>.Filter.Eq(x => x.Status, APIConstant.InProcess)) & 
-            //    (Builders<Cargo>.Filter.Eq(x => x.Destination, location) 
-            //    | Builders<Cargo>.Filter.Eq(x => x.Courier, location));
 
-            var cargoes = await cargoCollection
-                .Find(filter)
-                .ToListAsync();
-            return cargoes;
+                var filter = Builders<Cargo>.Filter.In(x => x.Destination, cities.Select(x => x.Name).ToList());
+               filter &= Builders<Cargo>.Filter.Eq(x => x.Courier, plane.Callsign);
+                cargoes = await cargoCollection
+                    .Find(filter)
+                    .ToListAsync();
+
+                updateDefinition = Builders<Models.Cargo>.Update
+                                     .Set(s => s.Status, APIConstant.InTransit)
+                                     .Unset(s => s.Courier)
+                                     .Set(s => s.DeliveryDateTime, DateTime.UtcNow);
+
+            }
+            else
+            {
+
+                var filter = (Builders<Cargo>.Filter.Eq(x => x.Destination, plane.Route.FirstOrDefault()));
+                filter &= (Builders<Cargo>.Filter.Eq(x => x.Courier, plane.Callsign));
+                cargoes = await cargoCollection
+                    .Find(filter)
+                    .ToListAsync();
+
+                updateDefinition = Builders<Models.Cargo>.Update
+                                 .Set(s => s.Status, APIConstant.Delivered)
+                                 .Unset(s => s.Courier)
+                                 .Set(s => s.DeliveryDateTime, DateTime.UtcNow);
+            }
+                           
+                var updatingFilter = Builders<Models.Cargo>.Filter.In(s => s.Id, cargoes.Select(x => x.Id).ToList());
+                UpdateResult actionResult = await cargoCollection.UpdateManyAsync(updatingFilter, updateDefinition);
+            return actionResult.IsAcknowledged;
+
         }
 
-        public async Task<bool> DeleteReachedDestinationAsync(string id)
+        public async Task<bool> ProcessCargoLoadingAsync(Models.Plane plane)
         {
-            var filter = Builders<Models.Plane>.Filter.Eq(s => s.Callsign, id);
+            var cargoes = new List<Cargo>();
+            var filter = Builders<Cargo>.Filter.Eq(x => x.Courier, plane.Callsign);
+            filter &= Builders<Cargo>.Filter.In(x => x.Status,new List<string> { APIConstant.InProcess,APIConstant.InTransit });
+            cargoes = await cargoCollection
+                    .Find(filter)
+                    .ToListAsync();
+
+              var  updateDefinition = Builders<Models.Cargo>.Update
+                                     .Set(s => s.Status, APIConstant.InTransit)
+                                     .Set(s => s.DeliveryDateTime, DateTime.UtcNow);
+
+            var updatingFilter = Builders<Models.Cargo>.Filter.In(s => s.Id, cargoes.Select(x => x.Id).ToList());
+            UpdateResult actionResult = await cargoCollection.UpdateManyAsync(updatingFilter, updateDefinition);
+            return actionResult.IsAcknowledged;
+
+        }
+
+        
+
+        public async Task<bool> LoadCargoAsync(string id, string planeId)
+        {
+            var filter = Builders<Cargo>.Filter.Eq(s => s.Id, id);
+            try
+            {
+
+                var update = Builders<Cargo>.Update
+                                 .Set(s => s.Courier, planeId);
+
+
+
+                UpdateResult actionResult = await cargoCollection.UpdateOneAsync(filter, update);
+
+                return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        public async Task<bool> DeleteReachedDestinationAsync(Models.Plane plane)
+        {
+            var filter = Builders<Models.Plane>.Filter.Eq(s => s.Callsign, plane.Callsign);
             UpdateDefinition<Models.Plane> update;
 
             try
@@ -145,7 +218,8 @@ namespace GlobalDelivery.Repositories
 
                 UpdateResult actionResult = await planeCollection.UpdateOneAsync(filter, update);
 
-                
+                update = Builders<Models.Plane>.Update.PushEach(s => s.Route, new List<string> { plane.Route.First() }, position: plane.Route.Count());
+
                 return actionResult.IsAcknowledged && actionResult.ModifiedCount == 1;
             }
             catch (Exception ex)
