@@ -131,6 +131,7 @@ namespace GlobalDeliveryBackground.ChangeStream
 
             while (true)
             {
+                Thread.Sleep(1000);
                 try
                 {
                     if (WatchStream.newlyAddedCargoList.Any())
